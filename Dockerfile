@@ -16,8 +16,15 @@ RUN if [ -n "$OPENCLAW_DOCKER_APT_PACKAGES" ]; then \
       rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*; \
     fi
 
-# Install Tailscale
+# Install Tailscale with proper repository
 RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+      curl \
+      gnupg \
+      ca-certificates \
+    && curl -fsSL https://pkgr.tailscale.com/stable/debian/tailscale.asc | gpg --dearmor | tee /usr/share/keyrings/tailscale-archive-keyring.gpg >/dev/null && \
+    curl -fsSL https://pkgr.tailscale.com/stable/debian/tailscale.list | tee /etc/apt/sources.list.d/tailscale.list && \
+    apt-get update && \
     apt-get install -y --no-install-recommends \
       tailscale \
       iptables \

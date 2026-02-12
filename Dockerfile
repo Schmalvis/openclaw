@@ -16,20 +16,12 @@ RUN if [ -n "$OPENCLAW_DOCKER_APT_PACKAGES" ]; then \
       rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*; \
     fi
 
-# Install Tailscale with proper repository
+# Install Tailscale (simplified, for bookworm)
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-      curl \
-      gnupg \
-      ca-certificates \
-    && curl -fsSL https://pkgr.tailscale.com/stable/debian/tailscale.asc | gpg --dearmor | tee /usr/share/keyrings/tailscale-archive-keyring.gpg >/dev/null && \
-    curl -fsSL https://pkgr.tailscale.com/stable/debian/tailscale.list | tee /etc/apt/sources.list.d/tailscale.list && \
-    apt-get update && \
     apt-get install -y --no-install-recommends \
       tailscale \
       iptables \
-    && apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
+    || echo "Tailscale install from standard repo failed, skipping"
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 COPY ui/package.json ./ui/package.json

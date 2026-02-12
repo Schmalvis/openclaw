@@ -19,5 +19,3 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           tags: ${{ secrets.DOCKER_USERNAME }}/openclaw:latest
-          build-args: |
-            TAILSCALE_AUTH_KEY=${{ secrets.TAILSCALE_AUTH_KEY }}

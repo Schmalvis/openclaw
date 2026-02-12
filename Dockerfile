@@ -16,6 +16,14 @@ RUN if [ -n "$OPENCLAW_DOCKER_APT_PACKAGES" ]; then \
       rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*; \
     fi
 
+# Install Tailscale
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+      tailscale \
+      iptables \
+    && apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
+
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 COPY ui/package.json ./ui/package.json
 COPY patches ./patches
@@ -34,10 +42,41 @@ ENV NODE_ENV=production
 # Allow non-root user to write temp files during runtime/tests.
 RUN chown -R node:node /app
 
-# Security hardening: Run as non-root user
-# The node:22-bookworm image includes a 'node' user (uid 1000)
-# This reduces the attack surface by preventing container escape via root privileges
-USER node
+
+# Create entrypoint script
+RUN mkdir -p /app/scripts && cat > /app/scripts/entrypoint.sh << 'EOF'
+#!/bin/bash
+set -e
+
+# Start Tailscale daemon (requires root)
+if [ -n "$TAILSCALE_AUTH_KEY" ]; then
+  echo "Starting Tailscale..."
+  tailscaled &
+  TAILSCALE_PID=$!
+  sleep 2
+  
+  # Authenticate with Tailscale
+  tailscale login --authkey=$TAILSCALE_AUTH_KEY --accept-dns=false
+  
+  # Enable funnel
+  tailscale funnel on
+  
+  echo "Tailscale ready"
+fi
+
+# Switch to non-root user for OpenClaw
+exec su node << 'EOFUSER'
+#!/bin/bash
+node /app/openclaw.mjs gateway --allow-unconfigured
+EOFUSER
+EOF
+
+RUN chmod +x /app/scripts/entrypoint.sh
+
+# Security hardening: Start as root (for Tailscale), drops to node user in entrypoint
+USER root
+
+ENTRYPOINT ["/app/scripts/entrypoint.sh"]
 
 # Start gateway server with default config.
 # Binds to loopback (127.0.0.1) by default for security.

@@ -34,6 +34,20 @@ ENV NODE_ENV=production
 # Allow non-root user to write temp files during runtime/tests.
 RUN chown -R node:node /app
 
+# Install required system packages
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+      build-essential \
+      procps \
+      curl \
+      file \
+      git && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install Homebrew (non-interactive)
+RUN NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
 # Martin added stuff
 USER root
 RUN npm install -g @coinbase/cdp-sdk

@@ -48,6 +48,12 @@ RUN apt-get update && \
 # Install Homebrew (non-interactive)
 RUN NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
+# Add Homebrew to PATH
+ENV PATH="/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:${PATH}"
+
+# allow node user to use brew
+RUN chown -R node:node /home/linuxbrew
+
 # Martin added stuff
 USER root
 RUN npm install -g @coinbase/cdp-sdk

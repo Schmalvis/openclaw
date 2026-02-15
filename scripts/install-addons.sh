@@ -60,5 +60,25 @@ fi
 
 echo "✓ npm global packages installed."
 
+# ===== OpenClaw Extensions & Plugins =====
+echo ""
+echo "Installing OpenClaw extensions and plugins..."
+
+# MoltGuard Security Plugin
+echo "→ Installing MoltGuard (prompt injection detection plugin)..."
+if mkdir -p ~/.openclaw/extensions/moltguard && \
+   git clone --depth 1 https://github.com/openguardrails/moltguard.git /tmp/moltguard && \
+   cp -r /tmp/moltguard/* ~/.openclaw/extensions/moltguard/ && \
+   cd ~/.openclaw/extensions/moltguard && \
+   npm install --omit=dev 2>&1 && \
+   rm -rf /tmp/moltguard; then
+  echo "✓ MoltGuard installed successfully to ~/.openclaw/extensions/moltguard"
+else
+  echo "❌ MoltGuard installation failed"
+  exit 1
+fi
+
+echo "✓ OpenClaw extensions installed."
+
 echo ""
 echo "✅ All add-ons installed successfully."

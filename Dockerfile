@@ -69,15 +69,6 @@ USER root
 RUN chmod +x /tmp/install-addons.sh && /tmp/install-addons.sh
 USER node
 
-# Install MoltGuard security plugin from GitHub source
-# Provides prompt injection detection and local prompt sanitization
-RUN mkdir -p ~/.openclaw/extensions/moltguard && \
-    git clone --depth 1 https://github.com/openguardrails/moltguard.git /tmp/moltguard && \
-    cp -r /tmp/moltguard/* ~/.openclaw/extensions/moltguard/ && \
-    cd ~/.openclaw/extensions/moltguard && \
-    npm install --omit=dev && \
-    rm -rf /tmp/moltguard
-
 # Security hardening: Run as non-root user
 # The node:22-bookworm image includes a 'node' user (uid 1000)
 # This reduces the attack surface by preventing container escape via root privileges

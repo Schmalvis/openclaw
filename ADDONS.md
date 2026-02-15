@@ -12,6 +12,10 @@ This file documents all custom system-level and package installs for the Docker 
 
 - **steipete/tap/gogcli** (`gog`) — Google Workspace CLI for Gmail, Calendar, Drive, Contacts, Sheets, Docs
 
+## OpenClaw Plugins & Extensions
+
+- **moltguard** — Local prompt injection detection and prompt sanitization security plugin (installed to `~/.openclaw/extensions/moltguard`)
+
 ## Adding New Add-ons (DO THIS EVERY TIME)
 
 **Checklist for every new install:**

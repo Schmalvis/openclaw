@@ -1,7 +1,7 @@
 #!/bin/bash
 # scripts/install-addons.sh
 # Install all custom add-ons (Homebrew + npm) for the Docker image.
-# This script is called from the Dockerfile during build.
+# This script is called from the Dockerfile during build (as root).
 #
 # ⚠️  IMPORTANT: Any new packages added here MUST ALSO be documented in ADDONS.md
 # See ADDONS.md for the source of truth on what should be installed.
@@ -11,21 +11,43 @@ set -e
 
 echo "Installing custom add-ons..."
 
+# Ensure Homebrew is in PATH (it was installed as node user)
+export PATH="/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:$PATH"
+
+# Verify brew is available
+if ! command -v brew &> /dev/null; then
+  echo "❌ Homebrew not found in PATH. Available PATH: $PATH"
+  exit 1
+fi
+
+echo "✓ Homebrew found at: $(which brew)"
+
 # ===== Homebrew Packages =====
+echo ""
 echo "Installing Homebrew packages..."
 
-# Google Workspace CLI (optional - may not be available in all environments)
+# Google Workspace CLI
 echo "→ Installing gog (Google Workspace CLI)..."
 if brew install steipete/tap/gogcli 2>&1; then
   echo "✓ gog installed successfully"
 else
-  echo "⚠️  gog installation skipped (may not be available in this build environment)"
+  BREW_EXIT=$?
+  echo "⚠️  Warning: gog installation exited with code $BREW_EXIT (may already exist or tap unavailable)"
 fi
 
 echo "✓ Homebrew packages processed."
 
 # ===== NPM Global Packages =====
+echo ""
 echo "Installing npm global packages..."
+
+# Verify npm is available
+if ! command -v npm &> /dev/null; then
+  echo "❌ npm not found in PATH"
+  exit 1
+fi
+
+echo "✓ npm found at: $(which npm)"
 
 # Coinbase CDP SDK
 echo "→ Installing @coinbase/cdp-sdk..."
@@ -38,4 +60,5 @@ fi
 
 echo "✓ npm global packages installed."
 
+echo ""
 echo "✅ All add-ons installed successfully."

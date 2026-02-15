@@ -61,9 +61,10 @@ ENV PATH="/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:${PATH}
 ENV HOMEBREW_NO_AUTO_UPDATE=1
 ENV HOMEBREW_NO_INSTALL_CLEANUP=1
 
-# Martin added stuff
-USER root
-RUN npm install -g @coinbase/cdp-sdk
+# Install custom add-ons (Homebrew + npm packages)
+# See ADDONS.md for the source of truth
+COPY scripts/install-addons.sh /tmp/install-addons.sh
+RUN chmod +x /tmp/install-addons.sh && /tmp/install-addons.sh
 
 # Security hardening: Run as non-root user
 # The node:22-bookworm image includes a 'node' user (uid 1000)

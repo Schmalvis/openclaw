@@ -61,11 +61,13 @@ ENV PATH="/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:${PATH}
 ENV HOMEBREW_NO_AUTO_UPDATE=1
 ENV HOMEBREW_NO_INSTALL_CLEANUP=1
 
-# Install custom add-ons (Homebrew + npm packages) AS ROOT before USER node
-# This ensures proper permissions for both package managers
+# Install custom add-ons (Homebrew + npm packages)
+# Switch to root for installations, then back to node
 # See ADDONS.md for the source of truth
 COPY scripts/install-addons.sh /tmp/install-addons.sh
-RUN bash -x /tmp/install-addons.sh
+USER root
+RUN chmod +x /tmp/install-addons.sh && /tmp/install-addons.sh
+USER node
 
 # Security hardening: Run as non-root user
 # The node:22-bookworm image includes a 'node' user (uid 1000)

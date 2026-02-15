@@ -14,24 +14,27 @@ echo "Installing custom add-ons..."
 # ===== Homebrew Packages =====
 echo "Installing Homebrew packages..."
 
-# Google Workspace CLI
+# Google Workspace CLI (optional - may not be available in all environments)
 echo "→ Installing gog (Google Workspace CLI)..."
-brew install steipete/tap/gogcli || {
-  echo "⚠️  gog installation failed. Checking if it already exists..."
-  which gog && echo "gog is available" || echo "gog install failed"
-}
+if brew install steipete/tap/gogcli 2>&1; then
+  echo "✓ gog installed successfully"
+else
+  echo "⚠️  gog installation skipped (may not be available in this build environment)"
+fi
 
-echo "✓ Homebrew packages installed."
+echo "✓ Homebrew packages processed."
 
 # ===== NPM Global Packages =====
 echo "Installing npm global packages..."
 
 # Coinbase CDP SDK
 echo "→ Installing @coinbase/cdp-sdk..."
-npm install -g @coinbase/cdp-sdk --no-audit --no-fund || {
-  echo "⚠️  @coinbase/cdp-sdk installation failed"
+if npm install -g @coinbase/cdp-sdk --no-audit --no-fund 2>&1; then
+  echo "✓ @coinbase/cdp-sdk installed successfully"
+else
+  echo "❌ @coinbase/cdp-sdk installation failed"
   exit 1
-}
+fi
 
 echo "✓ npm global packages installed."
 

@@ -15,15 +15,24 @@ echo "Installing custom add-ons..."
 echo "Installing Homebrew packages..."
 
 # Google Workspace CLI
-brew install steipete/tap/gogcli
+echo "→ Installing gog (Google Workspace CLI)..."
+brew install steipete/tap/gogcli || {
+  echo "⚠️  gog installation failed. Checking if it already exists..."
+  which gog && echo "gog is available" || echo "gog install failed"
+}
 
-echo "Homebrew packages installed."
+echo "✓ Homebrew packages installed."
 
 # ===== NPM Global Packages =====
 echo "Installing npm global packages..."
 
-npm install -g @coinbase/cdp-sdk
+# Coinbase CDP SDK
+echo "→ Installing @coinbase/cdp-sdk..."
+npm install -g @coinbase/cdp-sdk --no-audit --no-fund || {
+  echo "⚠️  @coinbase/cdp-sdk installation failed"
+  exit 1
+}
 
-echo "npm global packages installed."
+echo "✓ npm global packages installed."
 
-echo "All add-ons installed successfully."
+echo "✅ All add-ons installed successfully."

@@ -63,5 +63,20 @@ fi
 
 echo "✓ OpenClaw extensions installed."
 
+# ===== OpenClaw Skills =====
+echo ""
+echo "Installing OpenClaw skills..."
+
+# gog skill (Google Workspace CLI)
+echo "→ Installing gog skill (Google Workspace integration)..."
+if mkdir -p ~/.openclaw/workspace/skills && \
+   cp -r /app/skills/gog ~/.openclaw/workspace/skills/gog; then
+  echo "✓ gog skill installed successfully to ~/.openclaw/workspace/skills/gog"
+else
+  echo "⚠️  gog skill installation failed (non-blocking, may not exist in this build)"
+fi
+
+echo "✓ OpenClaw skills installed."
+
 echo ""
 echo "✅ All add-ons installed successfully."

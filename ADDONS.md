@@ -16,6 +16,10 @@ This file documents all custom system-level and package installs for the Docker 
 
 - **moltguard** — Local prompt injection detection and prompt sanitization security plugin (installed to `~/.openclaw/extensions/moltguard`)
 
+## OpenClaw Skills
+
+- **gog** — Google Workspace CLI for Gmail, Calendar, Drive, Contacts, Sheets, Docs (copied from core `/app/skills/gog` to `~/.openclaw/workspace/skills/gog` for persistence)
+
 ## Startup Health Checks
 
 - **gog startup check** — On container restart, checks if gog is installed; if missing, attempts `brew install steipete/tap/gogcli`. Non-blocking (continues even if installation fails). See `scripts/check-gog.sh`.

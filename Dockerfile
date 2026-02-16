@@ -61,10 +61,10 @@ ENV PATH="/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:${PATH}
 ENV HOMEBREW_NO_AUTO_UPDATE=1
 ENV HOMEBREW_NO_INSTALL_CLEANUP=1
 
+RUN touch /app/install-addons.sh && chmod 755 /app/install-addons.sh
 COPY scripts/install-addons.sh /app/install-addons.sh
-RUN chmod +x /app/install-addons.sh
+RUN bash /app/install-addons.sh
 USER node
-RUN /app/install-addons.sh
 
 # Security hardening: Run as non-root user
 # The node:22-bookworm image includes a 'node' user (uid 1000)

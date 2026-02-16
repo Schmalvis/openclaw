@@ -35,6 +35,15 @@ else
   echo "⚠️  Warning: gog installation exited with code $BREW_EXIT (may already exist or tap unavailable)"
 fi
 
+# GitHub CLI
+echo "→ Installing gh (GitHub CLI)..."
+if brew install gh 2>&1; then
+  echo "✓ gh installed successfully"
+else
+  BREW_EXIT=$?
+  echo "⚠️  Warning: gh installation exited with code $BREW_EXIT (may already exist)"
+fi
+
 echo "✓ Homebrew packages processed."
 
 # ===== NPM Global Packages =====

@@ -34,6 +34,33 @@ ENV NODE_ENV=production
 # Allow non-root user to write temp files during runtime/tests.
 RUN chown -R node:node /app
 
+# Install required system packages for Homebrew
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+      build-essential \
+      procps \
+      curl \
+      file \
+      git \
+      ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+# Create Homebrew directory and give ownership to node user
+RUN mkdir -p /home/linuxbrew/.linuxbrew && \
+    chown -R node:node /home/linuxbrew
+
+# Switch to node user BEFORE installing Homebrew
+USER node
+
+# Install Homebrew non-interactively (as non-root user)
+RUN NONINTERACTIVE=1 /bin/bash -c \
+    "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Add brew to PATH
+ENV PATH="/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:${PATH}"
+ENV HOMEBREW_NO_AUTO_UPDATE=1
+ENV HOMEBREW_NO_INSTALL_CLEANUP=1
+
 # Install custom add-ons (system packages via APT, npm packages, OpenClaw plugins)
 # Run as root since apt-get requires elevated permissions
 # See ADDONS.md for the source of truth

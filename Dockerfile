@@ -61,6 +61,9 @@ ENV PATH="/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:${PATH}
 ENV HOMEBREW_NO_AUTO_UPDATE=1
 ENV HOMEBREW_NO_INSTALL_CLEANUP=1
 
+# switch bask to root user for scripts
+USER root  
+
 # Install custom add-ons (system packages via APT, npm packages, OpenClaw plugins)
 # Run as root since apt-get requires elevated permissions
 # See ADDONS.md for the source of truth

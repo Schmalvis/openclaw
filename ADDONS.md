@@ -11,7 +11,7 @@ This file documents all custom system-level and package installs for the Docker 
 ## Homebrew Packages
 
 - ~~**steipete/tap/gogcli** (`gog`)~~ — DISABLED (tap too slow/unavailable)
-- **gh** — GitHub CLI for managing repos, issues, PRs, and workflows
+- ~~**gh** (GitHub CLI)~~ — DISABLED (Homebrew network issues in build environment)
 
 ## OpenClaw Plugins & Extensions
 

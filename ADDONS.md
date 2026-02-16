@@ -10,7 +10,7 @@ This file documents all custom system-level and package installs for the Docker 
 
 ## Homebrew Packages
 
-- **steipete/tap/gogcli** (`gog`) — Google Workspace CLI for Gmail, Calendar, Drive, Contacts, Sheets, Docs
+- ~~**steipete/tap/gogcli** (`gog`)~~ — DISABLED (tap too slow/unavailable)
 - **gh** — GitHub CLI for managing repos, issues, PRs, and workflows
 
 ## OpenClaw Plugins & Extensions

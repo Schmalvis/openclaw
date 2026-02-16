@@ -26,14 +26,14 @@ echo "✓ Homebrew found at: $(which brew)"
 echo ""
 echo "Installing Homebrew packages..."
 
-# Google Workspace CLI
-echo "→ Installing gog (Google Workspace CLI)..."
-if brew install steipete/tap/gogcli 2>&1; then
-  echo "✓ gog installed successfully"
-else
-  BREW_EXIT=$?
-  echo "⚠️  Warning: gog installation exited with code $BREW_EXIT (may already exist or tap unavailable)"
-fi
+# Google Workspace CLI - DISABLED (tap too slow/unavailable)
+# echo "→ Installing gog (Google Workspace CLI)..."
+# if brew install steipete/tap/gogcli 2>&1; then
+#   echo "✓ gog installed successfully"
+# else
+#   BREW_EXIT=$?
+#   echo "⚠️  Warning: gog installation exited with code $BREW_EXIT (may already exist or tap unavailable)"
+# fi
 
 # GitHub CLI
 echo "→ Installing gh (GitHub CLI)..."

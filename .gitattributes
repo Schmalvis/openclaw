@@ -1,1 +1,18 @@
-* text=auto eol=lf
+# Custom OpenClaw Docker & deployment configuration
+# These files contain Martin's customizations and should never be overwritten by upstream merges
+Dockerfile merge=ours
+ADDONS.md merge=ours
+scripts/install-addons.sh merge=ours
+scripts/check-gog.sh merge=ours
+
+# Workflow customizations (GitHub Actions)
+.github/workflows/*.yml merge=ours
+
+# Workspace config (personality + preferences)
+AGENTS.md merge=ours
+SOUL.md merge=ours
+USER.md merge=ours
+TOOLS.md merge=ours
+IDENTITY.md merge=ours
+
+# Everything else: use 3-way merge (upstream changes win on other files)

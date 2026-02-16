@@ -11,40 +11,14 @@ set -e
 
 echo "Installing custom add-ons..."
 
-# Ensure Homebrew is in PATH (it was installed as node user)
-export PATH="/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:$PATH"
-
-# Verify brew is available
-if ! command -v brew &> /dev/null; then
-  echo "❌ Homebrew not found in PATH. Available PATH: $PATH"
-  exit 1
-fi
-
-echo "✓ Homebrew found at: $(which brew)"
-
-# ===== Homebrew Packages =====
+# ===== System Packages (APT) =====
 echo ""
-echo "Installing Homebrew packages..."
+echo "Installing system packages via APT..."
 
-# Google Workspace CLI - DISABLED (tap too slow/unavailable)
-# echo "→ Installing gog (Google Workspace CLI)..."
-# if brew install steipete/tap/gogcli 2>&1; then
-#   echo "✓ gog installed successfully"
-# else
-#   BREW_EXIT=$?
-#   echo "⚠️  Warning: gog installation exited with code $BREW_EXIT (may already exist or tap unavailable)"
-# fi
+apt-get update
+apt-get install -y --no-install-recommends gh
 
-# GitHub CLI - DISABLED (Homebrew network issues in build)
-# echo "→ Installing gh (GitHub CLI)..."
-# if brew install gh 2>&1; then
-#   echo "✓ gh installed successfully"
-# else
-#   BREW_EXIT=$?
-#   echo "⚠️  Warning: gh installation exited with code $BREW_EXIT (may already exist)"
-# fi
-
-echo "✓ Homebrew packages processed."
+echo "✓ System packages installed."
 
 # ===== NPM Global Packages =====
 echo ""

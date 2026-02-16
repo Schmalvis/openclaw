@@ -4,14 +4,13 @@
 
 This file documents all custom system-level and package installs for the Docker image. See `scripts/install-addons.sh` for the actual installation logic.
 
+## System Packages (APT)
+
+- **gh** — GitHub CLI for managing repos, issues, PRs, and workflows (from Debian repos)
+
 ## NPM Global Packages
 
 - **@coinbase/cdp-sdk** — Coinbase Developer Platform SDK for Node.js
-
-## Homebrew Packages
-
-- ~~**steipete/tap/gogcli** (`gog`)~~ — DISABLED (tap too slow/unavailable)
-- ~~**gh** (GitHub CLI)~~ — DISABLED (Homebrew network issues in build environment)
 
 ## OpenClaw Plugins & Extensions
 
@@ -30,13 +29,13 @@ This file documents all custom system-level and package installs for the Docker 
 
 ### Examples
 
-**Adding a Homebrew package:**
+**Adding a system package (APT):**
 ```bash
-# ADDONS.md (Homebrew section)
+# ADDONS.md (System Packages section)
 - **package-name** — Description of what it does
 
-# scripts/install-addons.sh (in the Homebrew section)
-brew install package-name
+# scripts/install-addons.sh (in the APT section)
+apt-get install -y --no-install-recommends package-name
 
 # Then commit & push
 ```

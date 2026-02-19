@@ -44,6 +44,10 @@ RUN pnpm ui:build
 
 ENV NODE_ENV=production
 
+# Set NODE_PATH for global npm packages (installed with npm_config_prefix=/usr/local)
+# This ensures packages like @coinbase/cdp-sdk are accessible to Node.js scripts
+ENV NODE_PATH=/usr/local/lib/node_modules
+
 # Allow non-root user to write temp files during runtime/tests.
 RUN chown -R node:node /app
 

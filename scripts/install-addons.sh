@@ -32,10 +32,14 @@ fi
 
 echo "✓ npm found at: $(which npm)"
 
+# Set npm prefix to /usr/local so packages are accessible to non-root users
+# (by default, root's npm installs to /root/.npm which is not accessible to node user)
+export npm_config_prefix=/usr/local
+
 # Coinbase CDP SDK
 echo "→ Installing @coinbase/cdp-sdk..."
 if npm install -g @coinbase/cdp-sdk --no-audit --no-fund 2>&1; then
-  echo "✓ @coinbase/cdp-sdk installed successfully"
+  echo "✓ @coinbase/cdp-sdk installed successfully to $npm_config_prefix/lib/node_modules"
 else
   echo "❌ @coinbase/cdp-sdk installation failed"
   exit 1

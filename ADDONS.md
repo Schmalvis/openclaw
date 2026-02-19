@@ -24,6 +24,13 @@ This file documents all custom system-level and package installs for the Docker 
 
 - **gog startup check** — On container restart, checks if gog is installed; if missing, attempts `brew install steipete/tap/gogcli`. Non-blocking (continues even if installation fails). See `scripts/check-gog.sh`.
 
+## Important Notes
+
+### NPM Global Package Accessibility
+All NPM packages are installed with `npm_config_prefix=/usr/local` to ensure they're accessible to non-root users (specifically the `node` user who runs OpenClaw at runtime). Without this, packages install to `/root/.npm` and are inaccessible.
+
+See `scripts/install-addons.sh` for the implementation.
+
 ## Adding New Add-ons (DO THIS EVERY TIME)
 
 **Checklist for every new install:**

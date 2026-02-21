@@ -1,67 +1,31 @@
 # ADDONS.md - Custom Docker Add-ons
 
-**📌 IMPORTANT RULE:** Every time you install anything new (packages, skills, tools, etc.), you MUST update this file AND `scripts/install-addons.sh`. This is the single source of truth for all custom Docker dependencies. Without this, new deployments won't include what you installed.
-
 This file documents all custom system-level and package installs for the Docker image. See `scripts/install-addons.sh` for the actual installation logic.
-
-## System Packages (APT)
-
-- **gh** — GitHub CLI for managing repos, issues, PRs, and workflows (from Debian repos)
 
 ## NPM Global Packages
 
 - **@coinbase/cdp-sdk** — Coinbase Developer Platform SDK for Node.js
 
-## OpenClaw Plugins & Extensions
+## Developer Tools
 
-- **moltguard** — Local prompt injection detection and prompt sanitization security plugin (installed to `~/.openclaw/extensions/moltguard`)
+- **Claude Code** — Official Anthropic AI coding assistant (native binary install)
 
-## OpenClaw Skills
+## MCP (Model Context Protocol) Servers
 
-- **gog** — Google Workspace CLI for Gmail, Calendar, Drive, Contacts, Sheets, Docs (copied from core `/app/skills/gog` to `~/.openclaw/workspace/skills/gog` for persistence)
+- **@modelcontextprotocol/server-filesystem** — File system access (read/write files)
+- **@modelcontextprotocol/server-web** — Web search and content extraction
+- **@modelcontextprotocol/server-sqlite** — SQLite database access
 
-## Startup Health Checks
+## Homebrew Packages
 
-- **gog startup check** — On container restart, checks if gog is installed; if missing, attempts `brew install steipete/tap/gogcli`. Non-blocking (continues even if installation fails). See `scripts/check-gog.sh`.
+- **steipete/tap/gogcli** (`gog`) — Google Workspace CLI for Gmail, Calendar, Drive, Contacts, Sheets, Docs
 
-## Important Notes
+## Adding New Add-ons
 
-### NPM Global Package Accessibility
-All NPM packages are installed with `npm_config_prefix=/usr/local` to ensure they're accessible to non-root users (specifically the `node` user who runs OpenClaw at runtime). Without this, packages install to `/root/.npm` and are inaccessible.
+When installing a new add-on:
 
-See `scripts/install-addons.sh` for the implementation.
+1. Add an entry to this file (NPM or Homebrew section)
+2. Update `scripts/install-addons.sh` with the install command
+3. Push to main — the next deploy will include it
 
-## Adding New Add-ons (DO THIS EVERY TIME)
-
-**Checklist for every new install:**
-
-1. ✅ **Document it here** — Add description to NPM or Homebrew section
-2. ✅ **Install command** — Add the install command to `scripts/install-addons.sh`
-3. ✅ **Commit both files** — `git add ADDONS.md scripts/install-addons.sh && git commit -m "add: <package-name>"`
-4. ✅ **Push to main** — Next deploy will automatically include it
-
-**Without these steps, the package disappears on next redeploy.**
-
-### Examples
-
-**Adding a system package (APT):**
-```bash
-# ADDONS.md (System Packages section)
-- **package-name** — Description of what it does
-
-# scripts/install-addons.sh (in the APT section)
-apt-get install -y --no-install-recommends package-name
-
-# Then commit & push
-```
-
-**Adding an NPM package:**
-```bash
-# ADDONS.md (NPM section)
-- **package-name** — Description of what it does
-
-# scripts/install-addons.sh (in the NPM section)
-npm install -g package-name
-
-# Then commit & push
-```
+This ensures future deployments always have everything.

@@ -12,9 +12,10 @@ This file documents all custom system-level and package installs for the Docker 
 
 ## MCP (Model Context Protocol) Servers
 
-- **@modelcontextprotocol/server-filesystem** — File system access (read/write files)
-- **@modelcontextprotocol/server-web** — Web search and content extraction
-- **@modelcontextprotocol/server-sqlite** — SQLite database access
+- **@modelcontextprotocol/server-filesystem** — File system access with secure path restrictions
+- **@modelcontextprotocol/server-memory** — Persistent knowledge graph-based memory system
+- **@modelcontextprotocol/server-everything** — Reference server with prompts, resources, and tools
+- **@modelcontextprotocol/server-sequential-thinking** — Dynamic problem-solving through thought sequences
 
 ## Homebrew Packages
 

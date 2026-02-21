@@ -8,23 +8,12 @@ set -e
 
 echo "Installing custom add-ons..."
 
-# ===== NPM Directory Setup =====
-echo "Setting up npm global directory..."
+# ===== NPM Global Packages =====
+echo "Installing npm global packages..."
 
 # Install to /usr/local so node user can access
 # (by default, root's npm goes to /root/.npm which node can't access)
 export npm_config_prefix=/usr/local
-
-# Pre-create npm directories with write access for node user
-# This prevents "EACCES: permission denied" errors when node user tries to install packages
-mkdir -p /usr/local/lib/node_modules/@modelcontextprotocol
-mkdir -p /usr/local/lib/node_modules/@coinbase
-mkdir -p /usr/local/bin
-chmod -R 777 /usr/local/lib/node_modules
-chmod 777 /usr/local/bin
-
-# ===== NPM Global Packages =====
-echo "Installing npm global packages..."
 
 # Coinbase CDP SDK
 echo "→ Installing @coinbase/cdp-sdk..."
@@ -63,20 +52,20 @@ else
   echo "⚠️  MCP filesystem server installation failed (non-blocking)"
 fi
 
-# Web search and content extraction
-echo "→ Installing MCP web server..."
-if npm install -g @modelcontextprotocol/server-web --no-audit --no-fund 2>&1; then
-  echo "✓ MCP web server installed"
+# Persistent memory
+echo "→ Installing MCP memory server..."
+if npm install -g @modelcontextprotocol/server-memory --no-audit --no-fund 2>&1; then
+  echo "✓ MCP memory server installed"
 else
-  echo "⚠️  MCP web server installation failed (non-blocking)"
+  echo "⚠️  MCP memory server installation failed (non-blocking)"
 fi
 
-# SQLite database access
-echo "→ Installing MCP sqlite server..."
-if npm install -g @modelcontextprotocol/server-sqlite --no-audit --no-fund 2>&1; then
-  echo "✓ MCP sqlite server installed"
+# Sequential thinking
+echo "→ Installing MCP sequential thinking server..."
+if npm install -g @modelcontextprotocol/server-sequential-thinking --no-audit --no-fund 2>&1; then
+  echo "✓ MCP sequential thinking server installed"
 else
-  echo "⚠️  MCP sqlite server installation failed (non-blocking)"
+  echo "⚠️  MCP sequential thinking server installation failed (non-blocking)"
 fi
 
 echo "MCP servers installed."

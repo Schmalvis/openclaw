@@ -8,12 +8,23 @@ set -e
 
 echo "Installing custom add-ons..."
 
-# ===== NPM Global Packages =====
-echo "Installing npm global packages..."
+# ===== NPM Directory Setup =====
+echo "Setting up npm global directory..."
 
 # Install to /usr/local so node user can access
 # (by default, root's npm goes to /root/.npm which node can't access)
 export npm_config_prefix=/usr/local
+
+# Pre-create npm directories with write access for node user
+# This prevents "EACCES: permission denied" errors when node user tries to install packages
+mkdir -p /usr/local/lib/node_modules/@modelcontextprotocol
+mkdir -p /usr/local/lib/node_modules/@coinbase
+mkdir -p /usr/local/bin
+chmod -R 777 /usr/local/lib/node_modules
+chmod 777 /usr/local/bin
+
+# ===== NPM Global Packages =====
+echo "Installing npm global packages..."
 
 # Coinbase CDP SDK
 echo "→ Installing @coinbase/cdp-sdk..."

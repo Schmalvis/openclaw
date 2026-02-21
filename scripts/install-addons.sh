@@ -8,14 +8,6 @@ set -e
 
 echo "Installing custom add-ons..."
 
-# ===== Homebrew Packages =====
-echo "Installing Homebrew packages..."
-
-# Google Workspace CLI
-brew install steipete/tap/gogcli
-
-echo "Homebrew packages installed."
-
 # ===== NPM Global Packages =====
 echo "Installing npm global packages..."
 

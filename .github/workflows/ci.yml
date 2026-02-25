@@ -147,6 +147,213 @@ jobs:
         with:
           name: dist-build
           path: dist/
+
+  # Validate npm pack contents after build (only on push to main, not PRs).
+  release-check:
+    needs: [docs-scope, build-artifacts]
+    if: github.event_name == 'push' && needs.docs-scope.outputs.docs_only != 'true'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      - name: Setup Node environment
+        uses: ./.github/actions/setup-node-env
+        with:
+          install-bun: "false"
+
+      - name: Download dist artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-build
+          path: dist/
+
+      - name: Check release contents
+        run: pnpm release:check
+
+  # Detect which heavy areas are touched so PRs can skip unrelated expensive jobs.
+  checks:
+    needs: [docs-scope, changed-scope, check]
+    if: needs.docs-scope.outputs.docs_only != 'true' && (github.event_name == 'push' || needs.changed-scope.outputs.run_node == 'true')
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runtime: node
+            task: test
+            command: pnpm canvas:a2ui:bundle && pnpm test
+          - runtime: node
+            task: protocol
+            command: pnpm protocol:check
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      - name: Setup Node environment
+        uses: ./.github/actions/setup-node-env
+        with:
+          install-bun: "false"
+
+      - name: Run ${{ matrix.task }} (${{ matrix.runtime }})
+        run: ${{ matrix.command }}
+
+  # Validate docs (format, lint, broken links) only when docs files changed.
+  check-docs:
+    needs: [docs-scope]
+    if: needs.docs-scope.outputs.docs_changed == 'true'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      - name: Setup Node environment
+        uses: ./.github/actions/setup-node-env
+        with:
+          install-bun: "false"
+  # Detect docs-only changes to skip heavy jobs (test, build, Windows, macOS, Android).
+  # Lint and format always run. Fail-safe: if detection fails, run everything.
+  docs-scope:
+    runs-on: ubuntu-24.04
+    outputs:
+      docs_only: ${{ steps.check.outputs.docs_only }}
+      docs_changed: ${{ steps.check.outputs.docs_changed }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: false
+
+      - name: Detect docs-only changes
+        id: check
+        uses: ./.github/actions/detect-docs-changes
+
+  # Detect which heavy areas are touched so PRs can skip unrelated expensive jobs.
+  # Push to main keeps broad coverage.
+  changed-scope:
+    needs: [docs-scope]
+    if: needs.docs-scope.outputs.docs_only != 'true'
+    runs-on: ubuntu-24.04
+    outputs:
+      run_node: ${{ steps.scope.outputs.run_node }}
+      run_macos: ${{ steps.scope.outputs.run_macos }}
+      run_android: ${{ steps.scope.outputs.run_android }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: false
+
+      - name: Detect changed scopes
+        id: scope
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ "${{ github.event_name }}" = "push" ]; then
+            BASE="${{ github.event.before }}"
+          else
+            BASE="${{ github.event.pull_request.base.sha }}"
+          fi
+
+          CHANGED="$(git diff --name-only "$BASE" HEAD 2>/dev/null || echo "UNKNOWN")"
+          if [ "$CHANGED" = "UNKNOWN" ] || [ -z "$CHANGED" ]; then
+            # Fail-safe: run broad checks if detection fails.
+            echo "run_node=true" >> "$GITHUB_OUTPUT"
+            echo "run_macos=true" >> "$GITHUB_OUTPUT"
+            echo "run_android=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          run_node=false
+          run_macos=false
+          run_android=false
+          has_non_docs=false
+          has_non_native_non_docs=false
+
+          while IFS= read -r path; do
+            [ -z "$path" ] && continue
+            case "$path" in
+              docs/*|*.md|*.mdx)
+                continue
+                ;;
+              *)
+                has_non_docs=true
+                ;;
+            esac
+
+            case "$path" in
+              # Generated protocol models are already covered by protocol:check and
+              # should not force the full native macOS lane.
+              apps/macos/Sources/OpenClawProtocol/*|apps/shared/OpenClawKit/Sources/OpenClawProtocol/*)
+                ;;
+              apps/macos/*|apps/ios/*|apps/shared/*|Swabble/*)
+                run_macos=true
+                ;;
+            esac
+
+            case "$path" in
+              apps/android/*|apps/shared/*)
+                run_android=true
+                ;;
+            esac
+
+            case "$path" in
+              src/*|test/*|extensions/*|packages/*|scripts/*|ui/*|.github/*|openclaw.mjs|package.json|pnpm-lock.yaml|pnpm-workspace.yaml|tsconfig*.json|vitest*.ts|tsdown.config.ts|.oxlintrc.json|.oxfmtrc.jsonc)
+                run_node=true
+                ;;
+            esac
+
+            case "$path" in
+              apps/android/*|apps/ios/*|apps/macos/*|apps/shared/*|Swabble/*|appcast.xml)
+                ;;
+              *)
+                has_non_native_non_docs=true
+                ;;
+            esac
+          done <<< "$CHANGED"
+
+          # If there are non-doc files outside native app trees, keep Node checks enabled.
+          if [ "$run_node" = false ] && [ "$has_non_docs" = true ] && [ "$has_non_native_non_docs" = true ]; then
+            run_node=true
+          fi
+
+          echo "run_node=${run_node}" >> "$GITHUB_OUTPUT"
+          echo "run_macos=${run_macos}" >> "$GITHUB_OUTPUT"
+          echo "run_android=${run_android}" >> "$GITHUB_OUTPUT"
+
+  # Build dist once for Node-relevant changes and share it with downstream jobs.
+  build-artifacts:
+    needs: [docs-scope, changed-scope, check]
+    if: needs.docs-scope.outputs.docs_only != 'true' && (github.event_name == 'push' || needs.changed-scope.outputs.run_node == 'true')
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      - name: Setup Node environment
+        uses: ./.github/actions/setup-node-env
+        with:
+          install-bun: "false"
+
+      - name: Build dist
+        run: pnpm build
+
+      - name: Upload dist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-build
+          path: dist/
           retention-days: 1
 
   # Validate npm pack contents after build (only on push to main, not PRs).
@@ -259,6 +466,9 @@ jobs:
       - name: Check types and lint and oxfmt
         run: pnpm check
 
+      - name: Enforce safe external URL opening policy
+        run: pnpm lint:ui:no-raw-window-open
+
   # Report-only dead-code scans. Runs after scope detection and stores machine-readable
   # results as artifacts for later triage before we enable hard gates.
   # Temporarily disabled in CI while we process initial findings.
@@ -298,7 +508,7 @@ jobs:
           name: dead-code-${{ matrix.tool }}-${{ github.run_id }}
           path: .artifacts/deadcode
 
-  # Validate docs (spellcheck, format, lint, broken links) only when docs files changed.
+  # Validate docs (format, lint, broken links) only when docs files changed.
   check-docs:
     needs: [docs-scope]
     if: needs.docs-scope.outputs.docs_changed == 'true'
@@ -317,11 +527,18 @@ jobs:
       - name: Check docs
         run: pnpm check:docs
 
+<<<<<<< HEAD
       - name: Spellcheck docs
         run: pnpm docs:spellcheck
 
   secrets:
     runs-on: ubuntu-24.04
+=======
+  skills-python:
+    needs: [docs-scope, changed-scope]
+    if: needs.docs-scope.outputs.docs_only != 'true' && (github.event_name == 'push' || needs.changed-scope.outputs.run_node == 'true')
+    runs-on: blacksmith-16vcpu-ubuntu-2404
+>>>>>>> upstream/main
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -333,10 +550,39 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install detect-secrets
+      - name: Install Python tooling
         run: |
           python -m pip install --upgrade pip
-          python -m pip install detect-secrets==1.5.0
+          python -m pip install pytest ruff pyyaml
+
+      - name: Lint Python skill scripts
+        run: python -m ruff check skills
+
+      - name: Test skill Python scripts
+        run: python -m pytest -q skills
+
+  secrets:
+    runs-on: blacksmith-16vcpu-ubuntu-2404
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      - name: Setup Node environment
+        uses: ./.github/actions/setup-node-env
+        with:
+          install-bun: "false"
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install pre-commit
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pre-commit detect-secrets==1.5.0
 
       - name: Detect secrets
         run: |
@@ -344,6 +590,30 @@ jobs:
             echo "::error::Secret scanning failed. See docs/gateway/security.md#secret-scanning-detect-secrets"
             exit 1
           fi
+
+      - name: Detect committed private keys
+        run: pre-commit run --all-files detect-private-key
+
+      - name: Audit changed GitHub workflows with zizmor
+        run: |
+          set -euo pipefail
+
+          if [ "${{ github.event_name }}" = "push" ]; then
+            BASE="${{ github.event.before }}"
+          else
+            BASE="${{ github.event.pull_request.base.sha }}"
+          fi
+
+          mapfile -t workflow_files < <(git diff --name-only "$BASE" HEAD -- '.github/workflows/*.yml' '.github/workflows/*.yaml')
+          if [ "${#workflow_files[@]}" -eq 0 ]; then
+            echo "No workflow changes detected; skipping zizmor."
+            exit 0
+          fi
+
+          pre-commit run zizmor --files "${workflow_files[@]}"
+
+      - name: Audit production dependencies
+        run: pre-commit run --all-files pnpm-audit-prod
 
   checks-windows:
     needs: [docs-scope, changed-scope, build-artifacts, check]
